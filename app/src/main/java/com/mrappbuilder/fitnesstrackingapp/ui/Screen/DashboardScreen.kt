@@ -29,7 +29,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,6 +46,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mrappbuilder.fitnesstrackingapp.HelperClass.openAutoStartSettings
 import com.mrappbuilder.fitnesstrackingapp.R
 
 import com.mrappbuilder.fitnesstrackingapp.ViewModel.StepsViewModel
@@ -53,6 +58,11 @@ fun DashboardScreen(viewModel: StepsViewModel, onHistory: () -> Unit, onEditGoal
     val ctx = LocalContext.current
     val steps by viewModel.steps.collectAsStateWithLifecycle()
     val goal by viewModel.goal.collectAsStateWithLifecycle()
+    val askedBattery by viewModel.askedBatteryOpt.collectAsState()
+    var showBatteryDialog by remember { mutableStateOf(!askedBattery) }
+    val askedAutoStart by viewModel.askedAutoStart.collectAsState(initial = false)
+    var showAutoStartDialog by remember { mutableStateOf(!askedAutoStart) }
+
 
     LaunchedEffect(Unit) {
         if (ContextCompat.checkSelfPermission(
@@ -63,6 +73,7 @@ fun DashboardScreen(viewModel: StepsViewModel, onHistory: () -> Unit, onEditGoal
         }
     }
 
+
     val progressTarget = (steps.toFloat() / goal).coerceIn(0f, 1f)
     val progress by animateFloatAsState(targetValue = progressTarget, label = "progress")
 
@@ -70,7 +81,28 @@ fun DashboardScreen(viewModel: StepsViewModel, onHistory: () -> Unit, onEditGoal
     val remainingSteps = (goal - steps).coerceAtLeast(0)
     val percentage = (progressTarget * 100).toInt()
     val caloriesBurned = (steps * 0.04).toInt() // Approximate calories calculation
-
+    if (showBatteryDialog) {
+        AskBatteryOptimizationOnce(
+            shouldAsk = showBatteryDialog,
+            onAsked = {
+                viewModel.markBatteryAsked()
+                showBatteryDialog = false
+            }
+        )
+    }
+    if (showAutoStartDialog) {
+        AutoStartDialog(
+            onConfirm = {
+                ctx.openAutoStartSettings()
+                viewModel.markAutoStartAsked()
+                showAutoStartDialog = false
+            },
+            onCancel = {
+                viewModel.markAutoStartAsked()
+                showAutoStartDialog = false
+            }
+        )
+    }
     Scaffold(
         topBar = {
             TopAppBar(

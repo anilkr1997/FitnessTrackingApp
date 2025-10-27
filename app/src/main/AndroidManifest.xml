@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
 
 
     <application
@@ -31,11 +32,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-<!--        <service-->
-<!--            android:name=".service.StepForegroundService"-->
-<!--            android:exported="false"-->
-<!--            android:foregroundServiceType="health"-->
-<!--            tools:targetApi="34" />-->
+
         <service
             android:name=".service.StepService"
             android:exported="false"

@@ -38,6 +38,8 @@ class StepsViewModel(
     // Live UI state
     private val _steps = MutableStateFlow(0)
     val steps: StateFlow<Int> = _steps
+    val askedAutoStart = goalRepo.askedAutoStart
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
     val goal: StateFlow<Int> = goalRepo.goalFlow.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(500), 100
@@ -46,7 +48,8 @@ class StepsViewModel(
     val history: StateFlow<List<StepRecord>> = stepRepo.history()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-
+    val askedBatteryOpt = goalRepo.askedBatteryOpt
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     // service binding
     @SuppressLint("StaticFieldLeak")
     private var service: StepService? = null
@@ -70,5 +73,12 @@ class StepsViewModel(
 
     fun setGoal(value: Int) {
         viewModelScope.launch { goalRepo.setGoal(value.coerceIn(10, 50000)) }
+    }
+    fun markBatteryAsked() = viewModelScope.launch {
+        goalRepo.setAskedBatteryOpt(true)
+    }
+
+    fun markAutoStartAsked() = viewModelScope.launch {
+        goalRepo.setAskedAutoStart(true)
     }
 }
